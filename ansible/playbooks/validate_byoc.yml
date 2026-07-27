@@ -23,8 +23,8 @@
       - name: Set facts for dr clusters backend
         ansible.builtin.set_fact:
             clusters:
-              primary_cluster: "{{ secrets_results.parsed_secrets['ocp-primary_cluster_kubeconfig'].fields.kubeconfig }}"
-              secondary_cluster: "{{ secrets_results.parsed_secrets['ocp-secondary_cluster_kubeconfig'].fields.kubeconfig }}"
+              primary_cluster: "{{ secrets_results.parsed_secrets['csi-dr1'].fields.kubeconfig }}"
+              secondary_cluster: "{{ secrets_results.parsed_secrets['csi-dr2'].fields.kubeconfig }}"
 
       - name: Get a tempfile for the kubeconfigs
         ansible.builtin.tempfile:
