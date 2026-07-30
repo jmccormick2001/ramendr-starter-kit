@@ -92,6 +92,36 @@ clusterGroup:
       extraValueFiles:
         - '$patternref/overrides/values-console-plugins-hub.yaml'
 
+    opp-policy:
+      name: opp-policy
+      namespace: openshift
+      argoProject: opp
+      chart: opp-policy-chart
+      chartVersion: 0.0.1
+      annotations:
+        argocd.argoproj.io/sync-wave: "5"
+      syncPolicy:
+        automated: {}
+        retry:
+          limit: 20
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+        syncOptions:
+          - syncTimeout=3600s
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - RespectIgnoreDifferences=true
+          - ServerSideApply=true
+      extraValueFiles:
+        - '/overrides/values-cluster-names.yaml'
+      ignoreDifferences:
+      - group: operators.openshift.io
+        kind: Console
+        jsonPointers:
+          - /spec/plugins
+
     vp-manage-proxy-cluster-ca:
       name: vp-manage-proxy-cluster-ca
       namespace: vp-manage-proxy-cluster-ca
@@ -152,6 +182,34 @@ clusterGroup:
       extraValueFiles:
         - '/overrides/values-cluster-names.yaml'
       ignoreDifferences:
+        - group: internal.open-cluster-management.io
+          kind: ManagedClusterInfo
+
+    rdr:
+      name: regional-dr
+      namespace: regional-dr
+      argoProject: opp
+      chart: regionaldr-with-virt
+      chartVersion: 0.0.2
+      annotations:
+        argocd.argoproj.io/sync-wave: "10"
+      syncPolicy:
+        automated: {}
+        # We have to wait for the clusters to build, whcih can take a long time
+        retry:
+          limit: 60
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+        syncOptions:
+          - RespectIgnoreDifferences=true
+      extraValueFiles:
+        - '/overrides/values-cluster-names.yaml'
+        - '/overrides/values-egv-dr.yaml'
+      ignoreDifferences:
+        # Prevent ArgoCD from pruning dynamically created OCM resources
+        # These resources are created by OCM operators and should never be pruned
         - group: internal.open-cluster-management.io
           kind: ManagedClusterInfo
 
